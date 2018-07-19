@@ -24,7 +24,7 @@ app.get('/new-article', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response, next) => {
-  let SQL = ``;
+  let SQL = `SELECT * FROM articles`;
 
   client.query(SQL)
     .then(result => {
@@ -34,8 +34,11 @@ app.get('/articles', (request, response, next) => {
 });
 
 app.post('/articles', (request, response, next) => {
-  let SQL = ``;
-  let values = [];
+  let SQL = `INSERT INTO authors (author, "authorUrl") VALUES ($1, $2) ON CONFLICT DO NOTHING`;
+  let values = [
+    request.body.author,
+    request.body.authorUrl
+  ];
 
   client.query(SQL, values,
     function(err) {
@@ -48,8 +51,10 @@ app.post('/articles', (request, response, next) => {
   )
 
   function queryTwo(onError) {
-    let SQL = ``;
-    let values = [];
+    let SQL = `SELECT author FROM authors WHERE author = $1`;
+    let values = [
+      request.body.author
+    ];
 
     client.query(SQL, values,
       function(err, result) {
