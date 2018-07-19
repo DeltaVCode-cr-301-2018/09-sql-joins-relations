@@ -45,6 +45,7 @@ Article.truncateTable = callback => {
 };
 
 Article.prototype.insertRecord = function(callback) {
+  console.log({author: this.author, author_url: this.author_url, body: this.body, category: this.category, published_on: this.published_on, title: this.title});
   $.post('/articles', {author: this.author, author_url: this.author_url, body: this.body, category: this.category, published_on: this.published_on, title: this.title})
   .then(data => {
     console.log(data);
