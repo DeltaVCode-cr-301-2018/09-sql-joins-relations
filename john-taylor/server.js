@@ -6,7 +6,8 @@ const express = require('express');
 const PORT = process.env.PORT || 3000;
 const app = express();
 
-const conString = '';
+var os = require('os');
+const conString = os.platform() === 'darwin' ? 'postgres://localhost:5432/kilovolt': 'postgres://postgres:1234@localhost:5432/kilovolt';
 const client = new pg.Client(conString);
 client.connect();
 client.on('error', error => {
@@ -15,6 +16,7 @@ client.on('error', error => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use(express.static('./public'));
 
 // REVIEW: These are routes for requesting HTML resources.
@@ -24,7 +26,7 @@ app.get('/new-article', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response, next) => {
-  let SQL = ``;
+  let SQL = `SELECT * FROM articles INNER JOIN authors ON articles.author_id=authors.author_id`;
 
   client.query(SQL)
     .then(result => {
