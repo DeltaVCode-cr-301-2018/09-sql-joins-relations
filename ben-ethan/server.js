@@ -24,7 +24,7 @@ app.get('/new-article', (request, response) => {
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
 app.get('/articles', (request, response, next) => {
-  let SQL = `SELECT * FROM articles`;
+  let SQL = `SELECT * FROM articles INNER JOIN authors ON articles.author_id=authors.author_id`;
 
   client.query(SQL)
     .then(result => {
@@ -34,10 +34,10 @@ app.get('/articles', (request, response, next) => {
 });
 
 app.post('/articles', (request, response, next) => {
-  let SQL = `INSERT INTO authors (author, "authorUrl") VALUES ($1, $2) ON CONFLICT DO NOTHING`;
+  let SQL = `INSERT INTO authors (author, author_url) VALUES ($1, $2) ON CONFLICT DO NOTHING`;
   let values = [
     request.body.author,
-    request.body.authorUrl
+    request.body.author_url
   ];
 
   client.query(SQL, values,
@@ -51,7 +51,7 @@ app.post('/articles', (request, response, next) => {
   )
 
   function queryTwo(onError) {
-    let SQL = `SELECT author FROM authors WHERE author = $1`;
+    let SQL = `SELECT * FROM authors WHERE author = $1`;
     let values = [
       request.body.author
     ];
@@ -68,8 +68,14 @@ app.post('/articles', (request, response, next) => {
   }
 
   function queryThree(author_id, onError) {
-    let SQL = ``;
-    let values = [];
+    let SQL = `INSERT INTO articles (author_id, title, category, published_on, body) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`;
+    let values = [
+      author_id,
+      request.body.title,
+      request.body.category,
+      request.body.published_on,
+      request.body.body
+    ];
 
     client.query(SQL, values,
       function(err) {
