@@ -11,7 +11,8 @@ if (os.platform() === 'darwin'){
   console.log('mac');
   var conString = 'postgres://localhost:5432/kilovolt';
 } else{
-  var conString = 'postgres://postrgres:postgres@localhost:5432/kilovolt';
+  console.log('windows');
+  var conString = 'postgres://postgres:postgres@localhost:5432/kilovolt';
 }
 
 const client = new pg.Client(conString);
@@ -95,13 +96,21 @@ app.post('/articles', (request, response, next) => {
 });
 
 app.put('/articles/:id', function(request, response, next) {
-  let SQL = ``;
-  let values = [];
+  let SQL = `
+  UPDATE authors 
+  SET author=$1, author_url=$2 
+  
+  WHERE author_id = $3`
+  ;
+  let values = [request.body.author, request.body.author_url, request.body.author_id];
 
   client.query(SQL, values)
     .then(() => {
-      let SQL = ``;
-      let values = [];
+      let SQL = `
+      UPDATE articles 
+      SET articles_id=$1, author_id=$2, title=$3, category=$4, published_on=$5, body=$6`
+      ;
+      let values = [request.params.id, request.body.author_id, request.body.title, request.body.category, request.body.published_on, request.body.body];
 
       client.query(SQL, values)
     })
