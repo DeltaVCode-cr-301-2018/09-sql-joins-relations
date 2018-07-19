@@ -14,12 +14,16 @@ client.on('error', error => {
 });
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({
+  extended: true
+}));
 app.use(express.static('./public'));
 
 // REVIEW: These are routes for requesting HTML resources.
 app.get('/new-article', (request, response) => {
-  response.sendFile('new.html', { root: './public' });
+  response.sendFile('new.html', {
+    root: './public'
+  });
 });
 
 // REVIEW: These are routes for making API calls to enact CRUD operations on our database.
@@ -29,7 +33,6 @@ app.get('/articles', (request, response, next) => {
   INNER JOIN authors AS au 
   ON a.author_id = au.author_id; 
   `;
-  console.log(SQL);
   client.query(SQL)
     .then(result => {
       response.send(result.rows);
@@ -49,8 +52,8 @@ app.post('/articles', (request, response, next) => {
   ];
   console.log(SQL);
   client.query(SQL, values,
-    function(err) {
-      
+    function (err) {
+
       // REVIEW: Early return here prevents queryTwo from running if there's an error
       if (err) return next(err);
 
@@ -60,7 +63,7 @@ app.post('/articles', (request, response, next) => {
   )
 
   function queryTwo(onError) {
-    let SQL = `SELECT author_id AS ai
+    let SQL = `SELECT *
     FROM authors
     WHERE author = $1`;
     let values = [
@@ -68,7 +71,7 @@ app.post('/articles', (request, response, next) => {
     ];
 
     client.query(SQL, values,
-      function(err, result) {
+      function (err, result) {
         // REVIEW: && is often used to guard against calling a missing callback
         if (err) return onError && onError(err);
 
@@ -92,7 +95,7 @@ app.post('/articles', (request, response, next) => {
     ];
 
     client.query(SQL, values,
-      function(err) {
+      function (err) {
         if (err) return onError && onError(err);
         response.send('insert complete');
       }
@@ -100,14 +103,38 @@ app.post('/articles', (request, response, next) => {
   }
 });
 
-app.put('/articles/:id', function(request, response, next) {
-  let SQL = ``;
-  let values = [];
+app.put('/articles/:id', function (request, response, next) {
+  let SQL = `UPDATE authors SET
+    author = $1, 
+    author_url = $2
+    WHERE author_id = $3;
+  `;
+
+  let values = [
+    request.body.author,
+    request.body.author_url,
+    request.body.author_id
+  ];
 
   client.query(SQL, values)
     .then(() => {
-      let SQL = ``;
-      let values = [];
+      let SQL = `UPDATE articles SET 
+        author_id = $1,
+        title = $2,
+        category = $3,
+        published_on = $4,
+        body = $5
+        WHERE article_id = $6;
+      `;
+
+      let values = [
+        request.body.author_id,
+        request.body.title,
+        request.body.category,
+        request.body.published_on,
+        request.body.body,
+        request.params.id
+      ];
 
       client.query(SQL, values)
     })
